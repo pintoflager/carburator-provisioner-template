@@ -1,0 +1,8 @@
+name = "template"
+version = "0.1.0"
+collection = "Provisioner"
+platforms = ["Client"]
+
+providers = ["ServiceProvider"]
+retry_times = 3
+retry_interval = 10
