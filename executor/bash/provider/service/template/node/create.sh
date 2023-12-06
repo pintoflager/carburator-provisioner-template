@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-carburator print terminal info \
+carburator log info \
 	"Invoking $PROVISIONER_SERVICE_PROVIDER_NAME $PROVISIONER_NAME server \
 	node provisioner..."
 
@@ -33,7 +33,7 @@ token=$(carburator get secret "$PROVISIONER_SERVICE_PROVIDER_SECRETS_0" --user r
 exitcode=$?
 
 if [[ -z $token || $exitcode -gt 0 ]]; then
-	carburator print terminal error \
+	carburator log error \
 		"Could not load $PROVISIONER_SERVICE_PROVIDER_NAME API token from secret. \
 		Unable to proceed"
 	exit 120
@@ -43,7 +43,7 @@ fi
 nodes=$(carburator get json nodes array-raw -p .exec.json)
 
 if [[ -z $nodes ]]; then
-	carburator print terminal error "Could not load nodes array from .exec.json"
+	carburator log error "Could not load nodes array from .exec.json"
 	exit 120
 fi
 
@@ -55,7 +55,7 @@ provisioner_call() {
 provisioner_call "$resource_dir" "$node_out"; exitcode=$?
 
 if [[ $exitcode -eq 0 ]]; then
-	carburator print terminal success \
+	carburator log success \
 		"Server nodes created successfully with $PROVISIONER_NAME"
 
 	len=$(carburator get json node.value array -p "$node_out" | wc -l)
@@ -65,7 +65,7 @@ if [[ $exitcode -eq 0 ]]; then
 		node_uuid=$(carburator get json "node.$i.labels.uuid" string -p "$node_out")
 		name=$(carburator get json "node.$i.name" string -p "$node_out")
 		
-		carburator print terminal info \
+		carburator log info \
 			"Locking node '$name' provisioner to $PROVISIONER_NAME..."
 
 		carburator node lock-provisioner "$PROVISIONER_NAME" --node-uuid "$node_uuid"
@@ -79,7 +79,7 @@ if [[ $exitcode -eq 0 ]]; then
 
 		# Register block and extract first ip from it.
 		if [[ -n $ipv4 && $ipv4 != null ]]; then
-			carburator print terminal info \
+			carburator log info \
 				"Extracting IPv4 address blocks from node '$name' IP..."
 
 			address_block_uuid=$(carburator register net-block "$ipv4" \
@@ -101,7 +101,7 @@ if [[ $exitcode -eq 0 ]]; then
 		
 		# Register block
 		if [[ -n $ipv6_block && $ipv6_block != null ]]; then
-			carburator print terminal info \
+			carburator log info \
 				"Extracting IPv6 address blocks from node '$name' IP..."
 
 			ipv6=$(carburator get json "node.$i.ipv6" string -p "$node_out")
@@ -122,13 +122,13 @@ if [[ $exitcode -eq 0 ]]; then
 		fi
 	done
 
-	carburator print terminal success "IP address blocks registered."
+	carburator log success "IP address blocks registered."
 elif [[ $exitcode -eq 110 ]]; then
-	carburator print terminal error \
+	carburator log error \
 		"$PROVISIONER_NAME provisioner failed with exitcode $exitcode, allow retry..."
 	exit 110
 else
-	carburator print terminal error \
+	carburator log error \
 		"$PROVISIONER_NAME provisioner failed with exitcode $exitcode"
 	exit 120
 fi

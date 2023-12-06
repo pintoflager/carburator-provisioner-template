@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-carburator print terminal info \
+carburator log info \
 	"Invoking $PROVISIONER_SERVICE_PROVIDER_NAME $PROVISIONER_NAME server \
 	floating IP provisioner..."
 
@@ -9,12 +9,12 @@ ipv4=$(carburator get env IP_V4 -p .exec.env || echo "false")
 ipv6=$(carburator get env IP_V6 -p .exec.env || echo "false")
 
 if [[ -z $tag ]]; then
-    carburator print terminal error "Floating IP name missing from exec.env"
+    carburator log error "Floating IP name missing from exec.env"
     exit 120
 fi
 
 if [[ $ipv4 == false && $ipv6 == false ]]; then
-    carburator print terminal error \
+    carburator log error \
         "Trying to create floating IP without defining IP protocol."
     exit 120
 fi
@@ -48,7 +48,7 @@ token=$(carburator get secret "$PROVISIONER_SERVICE_PROVIDER_SECRETS_0" --user r
 exitcode=$?
 
 if [[ -z $token || $exitcode -gt 0 ]]; then
-	carburator print terminal error \
+	carburator log error \
 		"Could not load $PROVISIONER_SERVICE_PROVIDER_NAME API token from secret. \
 		Unable to proceed"
 	exit 120
@@ -58,7 +58,7 @@ fi
 nodes=$(carburator get json nodes array-raw -p .exec.json)
 
 if [[ -z $nodes ]]; then
-	carburator print terminal error "Could not load nodes array from .exec.json"
+	carburator log error "Could not load nodes array from .exec.json"
 	exit 120
 fi
 
@@ -66,7 +66,7 @@ fi
 nodes_output=$(carburator get json node.value array-raw -p "$node_out")
 
 if [[ -z $nodes_output ]]; then
-	carburator print terminal error \
+	carburator log error \
 		"Could not load $PROVISIONER_NAME nodes array from $node_out"
 	exit 120
 fi
@@ -79,7 +79,7 @@ provisioner_call() {
 provisioner_call "$resource_dir" "$fip_out"; exitcode=$?
 
 if [[ $exitcode -eq 0 ]]; then
-	carburator print terminal success \
+	carburator log success \
 		"Floating IP address(es) created successfully with $PROVISIONER_NAME"
 
     # Check if IPv4 was provisioned. Assuming single address instead of a block.
@@ -87,7 +87,7 @@ if [[ $exitcode -eq 0 ]]; then
         string -p "$fip_out")
 
     if [[ -n $fip4 ]]; then
-        carburator print terminal info \
+        carburator log info \
             "Extracting IPv4 address block from floating IP '$tag'..."
         
         v4_block_uuid=$(carburator register net-block "$fip4" \
@@ -107,7 +107,7 @@ if [[ $exitcode -eq 0 ]]; then
             --node-uuid "$v4_node_uuid" \
             --address-uuid "$v4_block_uuid"
 
-        carburator print terminal success "IPv4 address block registered."
+        carburator log success "IPv4 address block registered."
     fi
 
 	# Same as above but this time assuming we've received a full block of addresses.
@@ -115,7 +115,7 @@ if [[ $exitcode -eq 0 ]]; then
         string -p "$fip_out")
     
     if [[ -n $fip6 ]]; then
-        carburator print terminal info \
+        carburator log info \
             "Extracting IPv6 address block from floating IP '$tag'..."
         
         block_v6=$(carburator get json floating_ip.ipv6.network_block \
@@ -137,14 +137,14 @@ if [[ $exitcode -eq 0 ]]; then
             --node-uuid "$v6_node_uuid" \
             --address-uuid "$v6_block_uuid"
 
-        carburator print terminal success "IPv6 address block registered."
+        carburator log success "IPv6 address block registered."
     fi
 elif [[ $exitcode -eq 110 ]]; then
-	carburator print terminal error \
+	carburator log error \
 		"$PROVISIONER_NAME provisioner failed with exitcode $exitcode, allow retry..."
 	exit 110
 else
-	carburator print terminal error \
+	carburator log error \
 		"$PROVISIONER_NAME provisioner failed with exitcode $exitcode"
 	exit 120
 fi

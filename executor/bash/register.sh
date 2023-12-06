@@ -2,13 +2,13 @@
 
 # To prevent unwanted behaviour in case of a bad package config.
 if [[ $1 == "server" ]]; then
-    carburator print terminal error \
+    carburator log error \
         "Provisioners register only on client nodes. Package configuration error."
     exit 120
 fi
 
 if ! carburator has program "$PROVISIONER_NAME"; then
-    carburator print terminal warn "Missing $PROVISIONER_NAME on client machine."
+    carburator log warn "Missing $PROVISIONER_NAME on client machine."
 
     carburator prompt yes-no \
         "Should we try to install $PROVISIONER_NAME?" \
@@ -19,11 +19,11 @@ if ! carburator has program "$PROVISIONER_NAME"; then
         exit 120
     fi
 else
-    carburator print terminal success "$PROVISIONER_NAME found from the client"
+    carburator log success "$PROVISIONER_NAME found from the client"
     exit 0
 fi
 
-carburator print terminal warn \
+carburator log warn \
   "Missing required program $PROVISIONER_NAME. Trying to install it before proceeding..."
 
 # Try to install provisioner program on localhost...

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-carburator print terminal info "Invoking $PROVISIONER_NAME project provisioner..."
+carburator log info "Invoking $PROVISIONER_NAME project provisioner..."
 
 ###
 # Registers project and adds ssh key for project root.
@@ -30,7 +30,7 @@ token=$(carburator get secret "$PROVISIONER_SERVICE_PROVIDER_SECRETS_0" --user r
 exitcode=$?
 
 if [[ -z $token || $exitcode -gt 0 ]]; then
-	carburator print terminal error \
+	carburator log error \
 		"Could not load $PROVISIONER_SERVICE_PROVIDER_NAME API token from secret. \
 		Unable to proceed"
 	exit 120
