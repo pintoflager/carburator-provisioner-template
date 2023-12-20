@@ -1,4 +1,4 @@
 [dependency.bash]
 optional = false
-on_level = "Client" # Node | Cluster | Project | Client
+scope = "Client" # Node | Cluster | Project | Client
 collection = "Executor"
